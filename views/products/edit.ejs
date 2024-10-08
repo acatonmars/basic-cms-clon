@@ -1,0 +1,169 @@
+<%- include('../partials/header') %>
+<%- include('../partials/sidebar') %>
+
+<div class="main-content">
+    <div class="add-product-container">
+        <h1>Edit Product</h1>
+        
+        <form action="/products/<%= product._id %>?_method=PUT" method="POST" enctype="multipart/form-data" class="add-product-form">
+            <div class="form-grid">
+                <div class="form-left">
+                    <div class="image-upload-section">
+                        <h3>Product Images</h3>
+                        <div class="image-preview-container" id="imagePreviewContainer">
+                            <% product.images.forEach(image => { %>
+                                <div class="image-preview">
+                                    <img src="/uploads/<%= image %>" alt="Product image">
+                                    <input type="hidden" name="existingImages" value="<%= image %>">
+                                    <button type="button" class="remove-image" data-image="<%= image %>">&times;</button>
+                                </div>
+                            <% }) %>
+                        </div>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <input type="file" name="images" multiple accept="image/*" id="imageInput" style="display: none;">
+                            <div class="upload-placeholder" onclick="document.getElementById('imageInput').click()">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drop new files here or <span>browse</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-right">
+                    <div class="form-group">
+                        <label for="productName">Product Name</label>
+                        <input type="text" id="productName" name="name" value="<%= product.name %>" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Men" <%= product.category === 'Men' ? 'selected' : '' %>>Men</option>
+                                <option value="Women" <%= product.category === 'Women' ? 'selected' : '' %>>Women</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subCategory">Sub Category</label>
+                            <select id="subCategory" name="subCategory">
+                                <option value="">Select Sub Category</option>
+                                <option value="Watch" <%= product.subCategory === 'Watch' ? 'selected' : '' %>>Watch</option>
+                                <option value="Backpack" <%= product.subCategory === 'Backpack' ? 'selected' : '' %>>Backpack</option>
+                                <option value="Shoe" <%= product.subCategory === 'Shoe' ? 'selected' : '' %>>Shoe</option>
+                                <option value="Bag" <%= product.subCategory === 'Bag' ? 'selected' : '' %>>Bag</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="price">Price</label>
+                            <input type="number" id="price" name="price" value="<%= product.price %>" required min="0" step="0.01">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="stock">Stock</label>
+                            <input type="number" id="stock" name="stock" value="<%= product.stock %>" required min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="4"><%= product.description %></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tags">Tags</label>
+                        <input type="text" id="tags" name="tags" value="<%= product.tags.join(', ') %>" placeholder="Enter tags separated by commas">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="history.back()">Cancel</button>
+                        <button type="submit" class="btn-primary">Update Product</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('imageInput');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const existingPreviews = previewContainer.querySelectorAll('.image-preview');
+
+    // Manejar la eliminación de imágenes existentes
+    existingPreviews.forEach(preview => {
+        const removeButton = preview.querySelector('.remove-image');
+        removeButton.addEventListener('click', function() {
+            const image = this.getAttribute('data-image');
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'imagesToRemove';
+            hiddenInput.value = image;
+            preview.replaceWith(hiddenInput);
+        });
+    });
+
+    // Manejar la vista previa de nuevas imágenes
+    imageInput.addEventListener('change', function(e) {
+        for (let file of this.files) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'image-preview';
+                previewDiv.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button type="button" class="remove-preview">&times;</button>
+                `;
+                
+                const removeButton = previewDiv.querySelector('.remove-preview');
+                removeButton.addEventListener('click', function() {
+                    previewDiv.remove();
+                });
+                
+                previewContainer.appendChild(previewDiv);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Funcionalidad de arrastrar y soltar
+    const dropArea = document.getElementById('imageUploadArea');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => {
+            dropArea.classList.add('highlight');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => {
+            dropArea.classList.remove('highlight');
+        });
+    });
+
+    dropArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        imageInput.files = files;
+        const event = new Event('change');
+        imageInput.dispatchEvent(event);
+    });
+});
+</script>
+
+<%- include('../partials/footer') %>

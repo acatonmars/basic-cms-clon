@@ -1,0 +1,146 @@
+<%- include('../partials/header') %>
+<%- include('../partials/sidebar') %>
+
+<div class="main-content">
+    <div class="add-product-container">
+        <h1>Add Product</h1>
+        
+        <form action="/products" method="POST" enctype="multipart/form-data" class="add-product-form">
+            <div class="form-grid">
+                <div class="form-left">
+                    <div class="image-upload-section">
+                        <h3>Add Images</h3>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <input type="file" name="images" multiple accept="image/*" id="imageInput" style="display: none;">
+                            <div class="upload-placeholder" onclick="document.getElementById('imageInput').click()">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drop your files here or <span>browse</span></p>
+                            </div>
+                        </div>
+                        <div id="imagePreviewContainer" class="image-preview-container"></div>
+                    </div>
+                </div>
+                
+                <div class="form-right">
+                    <div class="form-group">
+                        <label for="productName">Product Name</label>
+                        <input type="text" id="productName" name="name" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Men">Men</option>
+                                <option value="Women">Women</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subCategory">Sub Category</label>
+                            <select id="subCategory" name="subCategory">
+                                <option value="">Select Sub Category</option>
+                                <option value="Watch">Watch</option>
+                                <option value="Backpack">Backpack</option>
+                                <option value="Shoe">Shoe</option>
+                                <option value="Bag">Bag</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="price">Price</label>
+                            <input type="number" id="price" name="price" required min="0" step="0.01">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="stock">Stock</label>
+                            <input type="number" id="stock" name="stock" required min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tags">Tags</label>
+                        <input type="text" id="tags" name="tags" placeholder="Enter tags separated by commas">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="history.back()">Cancel</button>
+                        <button type="submit" class="btn-primary">Add Product</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    const container = document.getElementById('imagePreviewContainer');
+    container.innerHTML = '';
+    
+    for (let file of this.files) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'image-preview';
+            previewDiv.innerHTML = `
+                <img src="${e.target.result}" alt="Preview">
+                <button type="button" class="remove-image">&times;</button>
+            `;
+            container.appendChild(previewDiv);
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// Handle drag and drop
+const dropArea = document.getElementById('imageUploadArea');
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults (e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, highlight, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, unhighlight, false);
+});
+
+function highlight(e) {
+    dropArea.classList.add('highlight');
+}
+
+function unhighlight(e) {
+    dropArea.classList.remove('highlight');
+}
+
+dropArea.addEventListener('drop', handleDrop, false);
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    
+    document.getElementById('imageInput').files = files;
+    
+    // Trigger change event manually
+    const event = new Event('change');
+    document.getElementById('imageInput').dispatchEvent(event);
+}
+</script>
+
+<%- include('../partials/footer') %>

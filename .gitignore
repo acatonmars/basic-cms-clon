@@ -1,0 +1,18 @@
+# Evitar subir la carpeta node_modules
+node_modules/
+
+# Evitar archivos de logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Evitar directorios de producción de builds
+dist/
+build/
+
+# Evitar archivos de entorno
+.env
+
+# Evitar directorios creados por editores (ej. VSCode)
+.vscode/
+.idea/
